@@ -1,0 +1,31 @@
+diff --git a/man/waybar-custom.5.scd b/man/waybar-custom.5.scd
+index 3d30859..8abb3a8 100644
+--- a/man/waybar-custom.5.scd
++++ b/man/waybar-custom.5.scd
+@@ -124,11 +124,11 @@ This should look like this:
+ 
+ The *class* parameter also accepts an array of strings.
+ 
+-If nothing or an invalid option is specified, Waybar expects i3blocks style output. Values are *newline* separated.
++If nothing or an invalid option is specified, Waybar expects *Tab* delemited output.
+ This should look like this:
+ 
+ ```
+-$text\\n$tooltip\\n$class*
++$text\\t$tooltip\\t$class\\n*
+ ```
+ 
+ *class* is a CSS class, to apply different styles in *style.css*
+diff --git a/src/modules/custom.cpp b/src/modules/custom.cpp
+index 6fc0167..9533218 100644
+--- a/src/modules/custom.cpp
++++ b/src/modules/custom.cpp
+@@ -162,7 +162,7 @@ void waybar::modules::Custom::parseOutputRaw() {
+   std::istringstream output(output_.out);
+   std::string line;
+   int i = 0;
+-  while (getline(output, line)) {
++  while (getline(output, line, '\t')) {
+     if (i == 0) {
+       if (config_["escape"].isBool() && config_["escape"].asBool()) {
+         text_ = Glib::Markup::escape_text(line);
