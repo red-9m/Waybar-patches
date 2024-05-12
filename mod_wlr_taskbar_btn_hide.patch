@@ -1,0 +1,12 @@
+diff --git a/src/modules/wlr/taskbar.cpp b/src/modules/wlr/taskbar.cpp
+index 6e3e4e08..899b51e5 100644
+--- a/src/modules/wlr/taskbar.cpp
++++ b/src/modules/wlr/taskbar.cpp
+@@ -465,6 +465,7 @@ void Task::handle_output_enter(struct wl_output *output) {
+ }
+ 
+ void Task::handle_output_leave(struct wl_output *output) {
++  return;
+   spdlog::debug("{} left output {}", repr(), (void *)output);
+ 
+   if (button_visible_ && !tbar_->all_outputs() && tbar_->show_output(output)) {
