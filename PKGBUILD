@@ -1,7 +1,7 @@
 # Maintainer: Alexis Rouillard <contact@arouillard.fr>
 
 pkgname=waybar-git
-pkgver=r2134.5da45ec
+pkgver=r3428.cb2d54a2
 pkgrel=1
 pkgdesc='Highly customizable Wayland bar for Sway and Wlroots based compositors (GIT)'
 arch=('x86_64')
@@ -12,36 +12,50 @@ conflicts=('waybar')
 depends=(
     'gtkmm3'
     'libjsoncpp.so'
-    'libinput'
     'libsigc++'
     'fmt'
+    'jack' 'libjack.so'
     'wayland'
-    'chrono-date'
+    'libdate-tz.so'
     'libspdlog.so'
     'gtk-layer-shell'
+    'libupower-glib.so'
+    'upower'
+    'libevdev'
+    'libinput'
     'libpulse'
     'libnl'
     'libappindicator-gtk3'
     'libdbusmenu-gtk3'
     'libmpdclient'
+    'libsndio.so'
+    'libxkbcommon'
+    'libwireplumber'
+    'playerctl'
 )
 makedepends=(
     'git'
     'cmake'
+    'catch2'
     'meson'
     'scdoc' # For generating manpages
     'wayland-protocols'
+)
+backup=(
+    etc/xdg/waybar/config
+    etc/xdg/waybar/style.css
 )
 optdepends=(
     'otf-font-awesome: Icons in the default configuration'
 )
 
 source=("${pkgname}::git+https://github.com/Alexays/Waybar"
-	"mod_custom_ret_type.patch"::"https://github.com/red-9m/Waybar-patches/raw/main/mod_custom_ret_type.patch"
-	"mod_net_fix_signal.patch"::"https://github.com/red-9m/Waybar-patches/raw/main/mod_net_fix_signal.patch"
-	)
+        "mod_custom_ret_type.patch"::"https://github.com/red-9m/Waybar-patches/raw/main/mod_custom_ret_type.patch"
+        "mod_net_fix_signal.patch"::"https://github.com/red-9m/Waybar-patches/raw/main/mod_net_fix_signal.patch"
+        "mod_wlr_taskbar_btn_hide.patch"::"https://github.com/red-9m/Waybar-patches/raw/main/mod_wlr_taskbar_btn_hide.patch"
+        )
 
-sha1sums=('SKIP' 'SKIP' 'SKIP')
+sha1sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 pkgver() {
     cd "${srcdir}/${pkgname}"
@@ -63,10 +77,28 @@ prepare() {
 build() {
     cd "${srcdir}/${pkgname}"
     rm -rf "${srcdir}/build"
-    meson --prefix=/usr "${srcdir}/build"
+    CXX=clang++ CC=clang CC_LD=lld CXX_LD=lld CFLAGS="-march=native -O2 -flto" CXXFLAGS="-march=native -O2 -flto" LDFLAGS="-flto -march=native" meson --prefix=/usr \
+          --buildtype=release \
+          --auto-features=enabled \
+          -Dmpris=disabled \
+          -Dlibnl=enabled \
+          -Dlibudev=disabled \
+          -Dlibevdev=disabled \
+          -Dupower_glib=disabled \
+          -Ddbusmenu-gtk=disabled \
+          -Dmpd=disabled \
+          -Dmpd=disabled \
+          -Dsndio=disabled \
+          -Dlogind=disabled \
+          -Dexperimental=false \
+          -Db_lto=true \
+          -Dcava=disabled \
+          -Dtests=disabled \
+          "${srcdir}/build"
     ninja -C "${srcdir}/build"
 }
 
 package() {
     DESTDIR="$pkgdir" ninja -C "${srcdir}/build" install
+    install -Dm644 "${srcdir}/${pkgname}/LICENSE" -t "$pkgdir/usr/share/licenses/$pkgname/"
 }
